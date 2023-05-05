@@ -9,15 +9,30 @@ from time import sleep
 
 from my_smb import Smb
 
-#to avoid SSL error
-ssl._create_default_https_context = ssl._create_unverified_context
 
-#Grobal::load config.json
-with open("config.json", "r") as fp:
-    conf = json.load(fp)
+#******************************** Global variables ***************************************************** 
+
+#true: when SSL verify error occurs, use unverified context    false: Exit with SSLCertVerificationError
+USE_UNVERIFIED_CONTEXT = False
+
+#Global::load config.json
+try:
+    with open("config.json", "r") as fp:
+        conf = json.load(fp)
+except FileNotFoundError as e:
+    print("config.json not found. check the current directory.")
+    exit(e.errno)
 
 
 #******************************** my functions ***************************************************** 
+
+def ssl_user_context(protocol=ssl.PROTOCOL_TLS, *, cert_reqs=ssl.CERT_REQUIRED,
+                           check_hostname=True, purpose=ssl.Purpose.SERVER_AUTH,
+                           certfile=None, keyfile=None,
+                           cafile=conf["SSL_CAFILE"], capath=None, cadata=None):
+
+    return ssl.create_default_context(purpose=purpose, cafile=cafile, capath=capath, cadata=cadata)
+
 
 def json_timestamp_dump(dat:dict):
     with open(datetime.now().strftime("%Y%m%d-%H%M%S")+"_dump.json", "w") as fp:
@@ -30,18 +45,31 @@ def timestamp_print(text:str):
 
 #******************************** main code *********************************************************** 
 if __name__ == "__main__":
+    
+    ssl._create_default_https_context = ssl_user_context
 
     #Create API connection
     client = WebClient(token=conf["API_TOKEN"])
-    api_res = client.api_test()
+
+    #API test
+    try:
+        api_res = client.api_test()
+    except ssl.SSLCertVerificationError as ssl_err :
+        print(ssl_err)
+
+        if USE_UNVERIFIED_CONTEXT:
+            timestamp_print("WARNING: Continue without SSL verification.")
+            ssl._create_default_https_context = ssl._create_unverified_context
+        else:
+            exit(ssl_err.errno)
 
     
     if api_res["ok"]: #API test OK    
         
-        #init slack iformation
+        #init slack information
         try:
             info = client.conversations_list(types="public_channel,private_channel,im")
-            info.data = {"channels": []}
+            info.data = {"channels": []} #previous information has no data
         except SlackApiError as e:
             timestamp_print(str(e))
             timestamp_print("failed to get new conversations list for init.")

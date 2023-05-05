@@ -1,13 +1,15 @@
 {
-    "API_TOKEN": "YOUR-API-KEY",
+    "SSL_CAFILE":"C:\\YOUR\\FILE\\TO\\PATH\\cacert.pem",
+
+    "API_TOKEN": "SLACK-BOT-API-TOKEN",
     "SLACK_APP_ID":"APP-ID",
-    "SLACK_REACTION_EMOJI": "floppy_disk",
+    "SLACK_REACTION_EMOJI": "floppy_disk", 
 
     "SMB_USER":"USER",
     "SMB_PASS":"PASS",
     "SMB_REMOTE_NAME":"Share",
     "SMB_HOST":"IP-ADDR",
-    "SMB_SERVICE_NAME":"USER-DESKTOP",
+    "SMB_SERVICE_NAME":"USER-SHARE",
 
     "SMB_STORE_PATH":"\\SlackUploadFiles",
     "SMB_FILETYPE_REJECT_LIST":["auto","apk","applescript","binary","fla","javascript","lua","perl","php","powershell","ruby","sql","vb","vbscript","xlsm"],
